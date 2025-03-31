@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Aluno;
+use App\Models\Aluno; //IMPORT DO ALUNO
 
 class AlunoController extends Controller
 {
@@ -12,10 +12,11 @@ class AlunoController extends Controller
      */
     public function index()
     {
-        $dados = Aluno::All();
+        // select * from alunos
+      $dados = Aluno::All();  // dados RECEBE aluno // sejam carregados e redirecionados, estamos na view e ela chama a rota e chama o controller e retorna a inofrmação
 
-        return view('aluno.list',
-        data: ['dados' => $dados]
+      return view('aluno.list',
+      data: ['dados' => $dados]
     );
     }
 
@@ -32,13 +33,15 @@ class AlunoController extends Controller
      */
     public function store(Request $request)
     {
+        //dd("teste"); dd - função nativa do laravel utilizada pra debugar do código SÓ PRA TESTE
+
         $request->validate([
-            'nome'=>'required|min:3|max:100',
+            'nome'=>'required|min:3|max:100', //VALIDAÇÃO DO NOME -> minimo 3 caracteres, maximo 100 caracteres
             'cpf'=>'required|max:14',
-            'telefone'=>'nullable|min:10|max:40'
+            'telefone'=>'nullable|min:10|max:40' //telefone opcional
         ],[
-            'nome.required'=>'O :attribute é obrigatório',
-            'cpf.required'=>'O :attribute é obrigatório',
+            'nome.required'=>'0 :attribute é obrigatório', //se respondido errado, vai aparecer a msg "atribute(nome nesse caso) é obrigatório"
+            'cpf.required'=>'0 :attribute é obrigatório',
         ]);
 
         $data = [
@@ -49,7 +52,8 @@ class AlunoController extends Controller
 
         Aluno::create($data);
 
-        redirect(to: 'aluno');
+        redirect(to:'aluno'); // store - redireciona o aluno
+
     }
 
     /**
@@ -65,7 +69,13 @@ class AlunoController extends Controller
      */
     public function edit(string $id)
     {
-        //
+      $dado = Aluno::findFail($id);
+
+
+        return view(
+            'aluno.form',
+            ['dado' => $dado]
+        );
     }
 
     /**
@@ -73,7 +83,27 @@ class AlunoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'nome'=>'required|min:3|max:100', //VALIDAÇÃO DO NOME -> minimo 3 caracteres, maximo 100 caracteres
+            'cpf'=>'required|max:14',
+            'telefone'=>'nullable|min:10|max:40' //telefone opcional
+        ],[
+            'nome.required'=>'0 :attribute é obrigatório', //se respondido errado, vai aparecer a msg "atribute(nome nesse caso) é obrigatório"
+            'cpf.required'=>'0 :attribute é obrigatório',
+        ]);
+
+        $data = [
+            'nome'=>$request->nome,
+            'cpf'=>$request->cpf,
+            'telefone'=>$request->telefone,
+        ];
+
+        Aluno::updateOrcreate(
+        ['id' =>$id],
+         $data );
+
+        redirect(to:'aluno'); // store - redireciona o aluno
+
     }
 
     /**
@@ -81,11 +111,28 @@ class AlunoController extends Controller
      */
     public function destroy(string $id)
     {
-        // dd("teste");
-        $dados = Aluno::find($id);
+       // dd(vars: "teste");
+       $dado = Aluno:: find(id: $id);
 
-        $dados->delete();
+       $dado->delete();
 
-        return redirect('aluno');
+       return redirect ('aluno');
+
+    }
+    public function search(Request $request)
+{
+    if (!empty($request->valor)) {
+        $dados = Aluno::where(
+            $request->tipo,
+            'like',
+            "%$request->valor%"
+        )->get();
+    }else{
+        $dados = Aluno::all();
+    }
+    return view(
+        'aluno.list',
+        ['dados' => $dados]
+        );
     }
 }
